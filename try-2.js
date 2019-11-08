@@ -4,6 +4,14 @@ var LibraryPrint = {
     // Internal functions
 
     $SPRINTF_FORMAT: {
+    	strlen: function(memory, pointer) {
+    		let len = 0;
+    		while (memory[pointer] != 0) {
+    			pointer++;
+    			len++;
+    		}
+    		return len;
+    	},
     	sprintf: function(key) {
     	    // `arguments` is not an array, but should be fine for this call
     	    return SPRINTF_FORMAT.sprintf_format(SPRINTF_FORMAT.sprintf_parse(key), arguments)
@@ -214,15 +222,34 @@ var LibraryPrint = {
 	           else {
 	               throw new SyntaxError('[sprintf] unexpected placeholder')
 	           }
-	           console.log(_fmt)
 	           _fmt = _fmt.substring(match[0].length)
 	       }
 	       return sprintf_cache[fmt] = parse_tree
+	   	},
+
+	   	decimalToHexa: function(d, padding) {
+	   	    var hex = Number(d).toString(16);
+	   	    padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
+
+	   	    while (hex.length < padding) {
+	   	        hex = "0" + hex;
+	   	    }
+
+	   	    return hex;
 	   	}
     },
 
     print: function (fmt, argv) {
-    	return SPRINTF_FORMAT.sprintf.apply(null, [fmt].concat(argv || []))
+		let memory = new Uint8Array (HEAPU8);
+		let len = SPRINTF_FORMAT.strlen(fmt, memory);
+		process.stdout.write (len +'\n');
+		for (let p = fmt; p<fmt+len; p++)
+		{
+		    process.stdout.write (String.fromCharCode (memory[p])+'');
+		}
+		console.log();
+    	return 1;
+    	// return SPRINTF_FORMAT.sprintf.apply(null, [fmt].concat(argv || []))
     }
 }
 

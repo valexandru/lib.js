@@ -1,6 +1,6 @@
 #include <main.h>
 
 int main() {
-	print("The first 4 letters of the english alphabet are: %s", 'a');
+	print("The chars are %d", 10);
 	return 1;
 }

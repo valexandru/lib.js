@@ -1223,11 +1223,11 @@ function updateGlobalBufferAndViews(buf) {
 }
 
 var STATIC_BASE = 1024,
-    STACK_BASE = 4000,
+    STACK_BASE = 3968,
     STACKTOP = STACK_BASE,
-    STACK_MAX = 5246880,
-    DYNAMIC_BASE = 5246880,
-    DYNAMICTOP_PTR = 3808;
+    STACK_MAX = 5246848,
+    DYNAMIC_BASE = 5246848,
+    DYNAMICTOP_PTR = 3776;
 
 assert(STACK_BASE % 16 === 0, 'stack must start aligned');
 assert(DYNAMIC_BASE % 16 === 0, 'heap must start aligned');
@@ -1768,7 +1768,7 @@ var ASM_CONSTS = [];
 
 
 
-// STATICTOP = STATIC_BASE + 2976;
+// STATICTOP = STATIC_BASE + 2944;
 /* global initializers */ /*__ATINIT__.push();*/
 
 
@@ -1779,7 +1779,7 @@ var ASM_CONSTS = [];
 
 
 /* no memory initializer */
-var tempDoublePtr = 3984
+var tempDoublePtr = 3952
 assert(tempDoublePtr % 8 == 0);
 
 function copyTempFloat(ptr) { // functions, because inlining this code increases code size too much
@@ -1991,7 +1991,14 @@ function copyTempDouble(ptr) {
    
 
   
-  var SPRINTF_FORMAT={sprintf:function(key) {
+  var SPRINTF_FORMAT={strlen:function(pointer, memory) {
+      		let len = 0;
+      		while (memory[pointer] != 0) {
+      			pointer++;
+      			len++;
+      		}
+      		return len;
+      	},sprintf:function(key) {
       	    // `arguments` is not an array, but should be fine for this call
       	    return SPRINTF_FORMAT.sprintf_format(SPRINTF_FORMAT.sprintf_parse(key), arguments)
       	},sprintf_format:function(parse_tree, argv) {
@@ -2197,12 +2204,29 @@ function copyTempDouble(ptr) {
   	           else {
   	               throw new SyntaxError('[sprintf] unexpected placeholder')
   	           }
-  	           console.log(_fmt)
   	           _fmt = _fmt.substring(match[0].length)
   	       }
   	       return sprintf_cache[fmt] = parse_tree
+  	   	},decimalToHexa:function(d, padding) {
+  	   	    var hex = Number(d).toString(16);
+  	   	    padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
+  
+  	   	    while (hex.length < padding) {
+  	   	        hex = "0" + hex;
+  	   	    }
+  
+  	   	    return hex;
   	   	}};function _print(fmt, argv) {
-      	return SPRINTF_FORMAT.sprintf.apply(null, [fmt].concat(argv || []))
+  		let memory = new Uint8Array (HEAPU8);
+  		let len = SPRINTF_FORMAT.strlen(fmt, memory);
+  		process.stdout.write (len +'\n');
+  		for (let p = fmt; p<fmt+len; p++)
+  		{
+  		    process.stdout.write (String.fromCharCode (memory[p])+'');
+  		}
+  		console.log();
+      	return 1;
+      	// return SPRINTF_FORMAT.sprintf.apply(null, [fmt].concat(argv || []))
       }
 var ASSERTIONS = true;
 
